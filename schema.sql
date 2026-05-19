@@ -4,7 +4,11 @@
 -- СУБД: MySQL 8.x
 -- ============================================================
 
-DROP DATABASE IF EXISTS airline_tickets;
+SET @db_exists = (SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = 'airline_tickets');
+SET @sql = IF(@db_exists > 0, 'DROP DATABASE airline_tickets', 'SELECT 1');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
 CREATE DATABASE airline_tickets CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE airline_tickets;
 
@@ -117,7 +121,7 @@ CREATE TABLE tariff (
     class_id         INT             NOT NULL,
     price            DECIMAL(10,2)   NOT NULL,
     available_seats  SMALLINT        NOT NULL,
-    is_refundable    TINYINT(1)      NOT NULL DEFAULT 1,
+    is_refundable    TINYINT         NOT NULL DEFAULT 1,
     CONSTRAINT pk_tariff          PRIMARY KEY (tariff_id),
     CONSTRAINT fk_tariff_flight   FOREIGN KEY (flight_id) REFERENCES flight(flight_id),
     CONSTRAINT fk_tariff_class    FOREIGN KEY (class_id)  REFERENCES service_class(class_id),

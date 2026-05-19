@@ -7,15 +7,31 @@ USE airline_tickets;
 
 DELIMITER $$
 
+-- Вспомогательная процедура: удаляет триггеры без предупреждений
+CREATE PROCEDURE drop_triggers()
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.TRIGGERS
+               WHERE TRIGGER_NAME = 'trg_ticket_before_insert'
+                 AND TRIGGER_SCHEMA = DATABASE()) THEN
+        DROP TRIGGER trg_ticket_before_insert;
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.TRIGGERS
+               WHERE TRIGGER_NAME = 'trg_ticket_after_update'
+                 AND TRIGGER_SCHEMA = DATABASE()) THEN
+        DROP TRIGGER trg_ticket_after_update;
+    END IF;
+END$$
+CALL drop_triggers()$$
+DROP PROCEDURE drop_triggers$$
+
 -- ------------------------------------------------------------
--- Триггер 1: trg_ticket_after_insert
--- Тип: AFTER INSERT на таблице ticket
+-- Триггер 1: trg_ticket_before_insert
+-- Тип: BEFORE INSERT на таблице ticket
 -- Семантика: при добавлении нового билета автоматически
 --            уменьшает количество свободных мест в тарифе на 1.
 --            Если свободных мест нет — генерирует ошибку и
 --            запрещает вставку (через SIGNAL).
 -- ------------------------------------------------------------
-DROP TRIGGER IF EXISTS trg_ticket_before_insert$$
 
 CREATE TRIGGER trg_ticket_before_insert
 BEFORE INSERT ON ticket
@@ -51,8 +67,6 @@ END$$
 --            При изменении статуса с 'cancelled' на активный —
 --            снова занимает место.
 -- ------------------------------------------------------------
-DROP TRIGGER IF EXISTS trg_ticket_after_update$$
-
 CREATE TRIGGER trg_ticket_after_update
 AFTER UPDATE ON ticket
 FOR EACH ROW

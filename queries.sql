@@ -139,7 +139,7 @@ WHERE p.passenger_id IN (
     WHERE r.distance_km > (SELECT AVG(distance_km) FROM route)
       AND t.status != 'cancelled'
 )
-ORDER BY p.last_name;
+ORDER BY 1;
 
 -- ------------------------------------------------------------
 -- Запрос Ж. Создание представления (VIEW)

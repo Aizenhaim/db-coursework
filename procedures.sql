@@ -5,6 +5,12 @@
 
 USE airline_tickets;
 
+SET @s1 = IF((SELECT COUNT(*) FROM information_schema.ROUTINES WHERE ROUTINE_NAME='sp_passenger_tickets' AND ROUTINE_SCHEMA=DATABASE() AND ROUTINE_TYPE='PROCEDURE')>0,'DROP PROCEDURE sp_passenger_tickets','SELECT 1');
+PREPARE stmt FROM @s1; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @s2 = IF((SELECT COUNT(*) FROM information_schema.ROUTINES WHERE ROUTINE_NAME='sp_flight_availability' AND ROUTINE_SCHEMA=DATABASE() AND ROUTINE_TYPE='PROCEDURE')>0,'DROP PROCEDURE sp_flight_availability','SELECT 1');
+PREPARE stmt FROM @s2; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
 DELIMITER $$
 
 -- ------------------------------------------------------------
@@ -16,8 +22,6 @@ DELIMITER $$
 -- Параметры:
 --   p_passport_number  — серия и номер паспорта пассажира
 -- ------------------------------------------------------------
-DROP PROCEDURE IF EXISTS sp_passenger_tickets$$
-
 CREATE PROCEDURE sp_passenger_tickets(IN p_passport_number VARCHAR(20))
 BEGIN
     -- Проверяем существование пассажира
@@ -64,8 +68,6 @@ END$$
 --   p_flight_number  — номер рейса (например, 'SU1400')
 --   p_flight_date    — дата вылета в формате 'YYYY-MM-DD'
 -- ------------------------------------------------------------
-DROP PROCEDURE IF EXISTS sp_flight_availability$$
-
 CREATE PROCEDURE sp_flight_availability(
     IN p_flight_number VARCHAR(10),
     IN p_flight_date   DATE
